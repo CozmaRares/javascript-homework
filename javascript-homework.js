@@ -80,7 +80,24 @@ console.log(answers.fibonacciSum);
  * What is the largest prime factor of the number 600851475143?
  */
 function largestPrimeFactor() {
-    //Your code goes here
+    let maxFactor = 0;
+
+    while (n % 2 == 0) {
+        maxFactor = 2;
+        n = n / 2;
+    }
+
+    for (let i = 3; i * i <= n; i += 2) {
+        while (n % i == 0) {
+            maxFactor = i;
+            n = n / i;
+        }
+    }
+
+    if (n > 2)
+        return n;
+
+    return maxFactor;
 }
 
 console.time("largestPrimeFactor");
@@ -93,7 +110,31 @@ console.log(answers.largestPrimeFactor);
  * Find the largest palindrome made from the product of two 3-digit numbers.
  */
 function largestPalindrome() {
-    //Your code goes here
+    const isPalindrome = (number) => {
+        const string = number.toString();
+        const reversedString = string.split("")
+            .reverse().join("");
+        return string == reversedString;
+    };
+
+    let largest = 0;
+
+    for (let i = 999; i >= 100; i--) {
+        if (i * 999 < largest)
+            break;
+
+        for (let j = 999; j >= i; j--) {
+            const product = i * j;
+
+            if (product < largest)
+                break;
+
+            if (isPalindrome(product))
+                largest = product;
+        }
+    }
+
+    return largest;
 }
 
 console.time("largestPalindrome");
