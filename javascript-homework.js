@@ -79,7 +79,7 @@ console.log(answers.fibonacciSum);
  * The prime factors of 13195 are 5, 7, 13 and 29.
  * What is the largest prime factor of the number 600851475143?
  */
-function largestPrimeFactor() {
+function largestPrimeFactor(n) {
     let maxFactor = 0;
 
     while (n % 2 == 0) {
@@ -101,7 +101,7 @@ function largestPrimeFactor() {
 }
 
 console.time("largestPrimeFactor");
-answers.largestPrimeFactor = largestPrimeFactor();
+answers.largestPrimeFactor = largestPrimeFactor(600851475143);
 console.timeEnd("largestPrimeFactor");
 console.log(answers.largestPrimeFactor);
 
@@ -146,12 +146,58 @@ console.log(answers.largestPalindrome);
  * 2520 is the smallest number that can be divided by each of the numbers from 1 to 10 without any remainder.
  * What is the smallest positive number that is evenly divisible by all of the numbers from 1 to 20?
  */
-function smallestMultipleOf1to20() {
-    //Your code goes here
+function getPrimeFactors(n) {
+    const factors = [];
+
+    let power = 0;
+    while (n % 2 == 0) {
+        power++;
+        n /= 2;
+    }
+    if (power != 0)
+        factors.push([2, power]);
+
+    for (let i = 3; i * i <= n; i += 2) {
+        power = 0;
+        while (n % i == 0) {
+            power++;
+            n /= i;
+        }
+        if (power != 0)
+            factors.push([i, power]);
+    }
+
+    if (n > 2)
+        factors.push([n, 1]);
+
+    return factors;
+}
+
+function smallestMultipleOf1to20(limit) {
+    const powers = new Map();
+
+    for (let i = 2; i <= limit; i++) {
+        const factors = getPrimeFactors(i);
+
+        factors.forEach(([factor, power]) => {
+            const storedPower = powers.get(factor) ?? 0;
+
+            if (power > storedPower)
+                powers.set(factor, power);
+        })
+    }
+
+    let num = 1;
+
+    powers.forEach((power, factor) => {
+        num *= factor ** power;
+    })
+
+    return num;
 }
 
 console.time("smallestMultipleOf1to20");
-answers.smallestMultipleOf1to20 = smallestMultipleOf1to20();
+answers.smallestMultipleOf1to20 = smallestMultipleOf1to20(20);
 console.timeEnd("smallestMultipleOf1to20");
 console.log(answers.smallestMultipleOf1to20);
 
@@ -162,12 +208,14 @@ console.log(answers.smallestMultipleOf1to20);
  * Find the difference between the sum of the squares of the first one hundred natural numbers and the square of the sum.
  */
 
-function sumSquareDifference() {
-    //Your code goes here
+function sumSquareDifference(n) {
+    const sumSquares = n * (n + 1) * (2 * n + 1) / 6;
+    const squaredSum = (n * (n + 1) / 2) ** 2;
+    return squaredSum - sumSquares;
 }
 
 console.time("sumSquareDifference");
-answers.sumSquareDifference = sumSquareDifference();
+answers.sumSquareDifference = sumSquareDifference(100);
 console.timeEnd("sumSquareDifference");
 console.log(answers.sumSquareDifference);
 
@@ -175,8 +223,42 @@ console.log(answers.sumSquareDifference);
  * By listing the first six prime numbers: 2, 3, 5, 7, 11, and 13, we can see that the 6th prime is 13.
  * What is the 10 001st prime number?
  */
+function eratostene(n) {
+    const sieve = new Array(n).fill(true);
+
+    sieve[0] = sieve[1] = false;
+
+    for (let i = 2; i * 2 <= n; i++) {
+        if (sieve[i] == false)
+            continue;
+
+        let j = 2;
+
+        while (true) {
+            let p = i * j;
+
+            if (p > n)
+                break;
+
+            sieve[p] = false;
+            j++;
+        }
+    }
+
+    const primes = [];
+
+    sieve.forEach((isPrime, number) => {
+        if (isPrime)
+            primes.push(number);
+    });
+
+    return primes;
+}
+
 function primeAtPosition() {
-    //Your code goes here
+    const n = 1_000_000;
+    const primes = eratostene(n);
+    return primes[10_000];
 }
 
 console.time("primeAtPosition");
@@ -191,7 +273,29 @@ console.log(answers.primeAtPosition);
  */
 
 function largestProductInSeries() {
-    //Your code here
+    const parseDigit = (n) => n.charCodeAt(0) - '0';
+
+    const number = "7316717653133062491922511967442657474235534919493496983520312774506326239578318016984801869478851843858615607891129494954595017379583319528532088055111254069874715852386305071569329096329522744304355766896648950445244523161731856403098711121722383113622298934233803081353362766142828064444866452387493035890729629049156044077239071381051585930796086670172427121883998797908792274921901699720888093776657273330010533678812202354218097512545405947522435258490771167055601360483958644670632441572215539753697817977846174064955149290862569321978468622482839722413756570560574902614079729686524145351004748216637048440319989000889524345065854122758866688116427171479924442928230863465674813919123162824586178664583591245665294765456828489128831426076900422421902267105562632111110937054421750694165896040807198403850962455444362981230987879927244284909188845801561660979191338754992005240636899125607176060588611646710940507754100225698315520005593572972571636269561882670428252483600823257530420752963450"
+    const numDigits = 13;
+
+    let prod = 1;
+
+    for (let i = 0; i < numDigits; i++)
+        prod *= parseDigit(number[i]);
+
+    let maxProd = prod;
+
+    for (let i = numDigits; i < number.length; i++) {
+        prod /= parseDigit(number[i - numDigits]);
+        prod *= parseDigit(number[i]);
+
+        if (prod > maxProd) {
+            maxProd = prod;
+            digitsStart = i - numDigits;
+        }
+    }
+
+    return maxProd;
 }
 
 console.time("largestProductInSeries");
@@ -205,7 +309,16 @@ console.log(answers.largestProductInSeries);
  * There exists exactly one Pythagorean triplet for which a + b + c = 1000. Find the product abc.
  */
 function pythagoreanTriplet() {
-    //Your code goes here
+    // a^2 + b^2 = (1000 - a - b)^2
+    // ...calcule
+
+    for (let a = 1; a < 1000; a++) {
+        const b = 1000 * (a - 500) / (a - 1000)
+        const c = (a ** 2 - 1000 * a + 500_000) / (1000 - a)
+
+        if (Math.floor(b) == b && Math.floor(c) == c)
+            return a * b * c;
+    }
 }
 
 console.time("pythagoreanTriplet");
@@ -218,7 +331,9 @@ console.log(answers.pythagoreanTriplet);
  */
 
 function sumOfPrimes() {
-    //Your code goes here
+    const n = 2_000_000;
+    const primes = eratostene(n);
+    return primes.reduce((acc, val) => acc + val, 0);
 }
 
 console.time("sumOfPrimes");
@@ -253,7 +368,112 @@ console.log(answers.sumOfPrimes);
  */
 
 function largestProductInAGrid() {
-    //Your code goes here
+    const grid = [
+        [8, 2, 22, 97, 38, 15, 0, 40, 0, 75, 4, 5, 7, 78, 52, 12, 50, 77, 91, 8],
+        [49, 49, 99, 40, 17, 81, 18, 57, 60, 87, 17, 40, 98, 43, 69, 48, 4, 56, 62, 0],
+        [81, 49, 31, 73, 55, 79, 14, 29, 93, 71, 40, 67, 53, 88, 30, 3, 49, 13, 36, 65],
+        [52, 70, 95, 23, 4, 60, 11, 42, 69, 24, 68, 56, 1, 32, 56, 71, 37, 2, 36, 91],
+        [22, 31, 16, 71, 51, 67, 63, 89, 41, 92, 36, 54, 22, 40, 40, 28, 66, 33, 13, 80],
+        [24, 47, 32, 60, 99, 3, 45, 2, 44, 75, 33, 53, 78, 36, 84, 20, 35, 17, 12, 50],
+        [32, 98, 81, 28, 64, 23, 67, 10, 26, 38, 40, 67, 59, 54, 70, 66, 18, 38, 64, 70],
+        [67, 26, 20, 68, 2, 62, 12, 20, 95, 63, 94, 39, 63, 8, 40, 91, 66, 49, 94, 21],
+        [24, 55, 58, 5, 66, 73, 99, 26, 97, 17, 78, 78, 96, 83, 14, 88, 34, 89, 63, 72],
+        [21, 36, 23, 9, 75, 0, 76, 44, 20, 45, 35, 14, 0, 61, 33, 97, 34, 31, 33, 95],
+        [78, 17, 53, 28, 22, 75, 31, 67, 15, 94, 3, 80, 4, 62, 16, 14, 9, 53, 56, 92],
+        [16, 39, 5, 42, 96, 35, 31, 47, 55, 58, 88, 24, 0, 17, 54, 24, 36, 29, 85, 57],
+        [86, 56, 0, 48, 35, 71, 89, 7, 5, 44, 44, 37, 44, 60, 21, 58, 51, 54, 17, 58],
+        [19, 80, 81, 68, 5, 94, 47, 69, 28, 73, 92, 13, 86, 52, 17, 77, 4, 89, 55, 40],
+        [4, 52, 8, 83, 97, 35, 99, 16, 7, 97, 57, 32, 16, 26, 26, 79, 33, 27, 98, 66],
+        [88, 36, 68, 87, 57, 62, 20, 72, 3, 46, 33, 67, 46, 55, 12, 32, 63, 93, 53, 69],
+        [4, 42, 16, 73, 38, 25, 39, 11, 24, 94, 72, 18, 8, 46, 29, 32, 40, 62, 76, 36],
+        [20, 69, 36, 41, 72, 30, 23, 88, 34, 62, 99, 69, 82, 67, 59, 85, 74, 4, 36, 16],
+        [20, 73, 35, 29, 78, 31, 90, 1, 74, 31, 49, 71, 48, 86, 81, 16, 23, 57, 5, 54],
+        [1, 70, 54, 71, 83, 51, 54, 69, 16, 92, 33, 48, 61, 43, 52, 1, 89, 19, 67, 48],
+    ];
+
+    const windowSize = 4;
+    const gridSize = grid.length;
+
+    const horizontal = (row) => {
+        let max = 0;
+        for (let i = windowSize - 1; i < gridSize; i++) {
+            let product = 1;
+            for (let j = 0; j < windowSize; j++) {
+                product *= grid[row][i - j];
+            }
+            max = Math.max(max, product);
+        }
+        return max;
+    };
+
+    const vertical = (col) => {
+        let max = 0;
+        for (let i = windowSize - 1; i < gridSize; i++) {
+            let product = 1;
+            for (let j = 0; j < windowSize; j++) {
+                product *= grid[i - j][col];
+            }
+            max = Math.max(max, product);
+        }
+        return max;
+    };
+
+    const diagonal1 = (row, col) => {
+        row += windowSize - 1;
+        col += windowSize - 1;
+        let max = 0;
+        while (row < gridSize && col < gridSize) {
+            let product = 1;
+            for (let k = 0; k < windowSize; k++) {
+                product *= grid[row - k][col - k];
+            }
+            max = Math.max(max, product);
+            row++;
+            col++;
+        }
+        return max;
+    }
+
+    const diagonal2 = (row, col) => {
+        row += windowSize - 1;
+        col -= windowSize - 1;
+        let max = 0;
+        while (row < gridSize && col > 0) {
+            let product = 1;
+            for (let k = 0; k < windowSize; k++) {
+                product *= grid[row - k][col + k];
+            }
+            max = Math.max(max, product);
+            row++;
+            col--;
+        }
+        return max;
+    }
+
+    let max = 0;
+
+    for (let i = 0; i < gridSize; i++) {
+        const vert = vertical(i);
+        const horiz = horizontal(i);
+
+        const diag1Vert = diagonal1(i, 0);
+        const diag1Horiz = diagonal1(0, i);
+
+        const diag2Vert = diagonal2(i, gridSize - 1);
+        const diag2Horiz = diagonal2(0, i);
+
+        max = Math.max(
+            max,
+            vert,
+            horiz,
+            diag1Vert,
+            diag1Horiz,
+            diag2Vert,
+            diag2Horiz,
+        );
+    }
+
+    return max;
 }
 
 console.time("largestProductInAGrid");
@@ -277,7 +497,19 @@ console.log(answers.largestProductInAGrid);
  */
 
 function highlyDivisibleTriangularNumber() {
-    //Your code goes here
+    const goalDivisors = 500;
+    let n = 1;
+    while (true) {
+        const num = n * (n + 1) / 2;
+        const factors = getPrimeFactors(num);
+        const numDivisors = factors.reduce(
+            (acc, [, power]) => acc * (power + 1),
+            1
+        );
+        if (numDivisors >= goalDivisors)
+            return num;
+        n++;
+    }
 }
 
 console.time("highlyDivisibleTriangularNumber");
