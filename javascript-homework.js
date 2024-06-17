@@ -225,33 +225,24 @@ console.log(answers.sumSquareDifference);
  */
 function eratostene(n) {
     const sieve = new Array(n).fill(true);
-
     sieve[0] = sieve[1] = false;
-
     for (let i = 2; i * 2 <= n; i++) {
         if (sieve[i] == false)
             continue;
-
         let j = 2;
-
         while (true) {
             let p = i * j;
-
             if (p > n)
                 break;
-
             sieve[p] = false;
             j++;
         }
     }
-
     const primes = [];
-
     sieve.forEach((isPrime, number) => {
         if (isPrime)
             primes.push(number);
     });
-
     return primes;
 }
 
@@ -516,6 +507,93 @@ console.time("highlyDivisibleTriangularNumber");
 answers.highlyDivisibleTriangularNumber = highlyDivisibleTriangularNumber();
 console.timeEnd("highlyDivisibleTriangularNumber");
 console.log(answers.highlyDivisibleTriangularNumber);
+
+/**
+ * The number, 197, is called a circular prime because
+ * all rotations of the digits: 197, 971, and 719, are themselves prime.
+ * There are thirteen such primes below 100: 2, 3, 5, 7, 11, 13, 17,
+ * 31, 37, 71, 73, 79, and 97.
+ * How many circular primes are there below one million?
+*/
+function circularPrimes() {
+    const getPerms = (n) => {
+        const perms = [];
+        const str = `${n}`.split("").map(d => parseInt(d));
+
+        for (let i = 0; i < str.length; i++) {
+            let n = 0;
+
+            for (let j = 0; j < str.length; j++)
+                n = n * 10 + str[(i + j) % str.length];
+
+            perms.push(n);
+        }
+
+        return perms;
+    };
+
+    const n = 1_000_000;
+    const primes = new Set(eratostene(n));
+    const visited = new Set();
+
+    let numCircular = 0;
+
+    primes.forEach(prime => {
+        if (visited.has(prime))
+            numCircular++;
+
+        const perms = getPerms(prime);
+
+        if (perms.every(p => primes.has(p))) {
+            perms.forEach(perm => primes.add(perm));
+            numCircular++;
+        }
+    });
+
+    return numCircular;
+}
+
+console.time("circularPrimes");
+answers.circularPrimes = circularPrimes();
+console.timeEnd("circularPrimes");
+console.log(answers.circularPrimes);
+
+function circularPrimesSilviu() {
+    function isPrime(num) {
+        if (num <= 1) return false;
+        if (num <= 3) return true;
+        if (num % 2 === 0 || num % 3 === 0) return false;
+        for (let i = 5; i * i <= num; i += 6) {
+            if (num % i === 0 || num % (i + 2) === 0) return false;
+        }
+        return true;
+    }
+
+    function isCircularPrime(num) {
+        const digits = num.toString().split("");
+        const originalNum = num;
+        for (let i = 0; i < digits.length; i++) {
+            num = parseInt(digits.join(""));
+            if (!isPrime(num)) return false;
+            digits.push(digits.shift());
+        }
+        return originalNum !== 1 && originalNum !== 4;
+    }
+
+    let count = 0;
+    for (let i = 2; i < 1000000; i++) {
+        if (isCircularPrime(i)) {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+console.time("circularPrimesSilviu");
+answers.circularPrimesSilviu = circularPrimesSilviu();
+console.timeEnd("circularPrimesSilviu");
+console.log(answers.circularPrimesSilviu);
 
 //Logging all answers at the end.
 console.log(answers);
